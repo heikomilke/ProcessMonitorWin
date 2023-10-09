@@ -1,0 +1,80 @@
+﻿@page "/process-list"
+@using ProcessMonitorService.Service
+@using ProcessMonitorService.Data
+@using ProcessMonitorUI.Helper
+@inject RunningProcessCollector collector
+
+<PageTitle>Process List</PageTitle>
+@if (list == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <dl>
+        <dt>Date:</dt>
+        <dd>@list.DateCreated</dd>
+    </dl>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th >
+                     <button @onclick='() => SortBy("ProcessName")' class="btn btn-link">
+                                        @if (currentSortColumn == "ProcessName")
+                                        {
+                                            <span>@(ascending ? "▲" : "▼")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>sort</span>
+                                        }
+                                    </button>
+                Name
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in SortHelper.Sort(list.Data,new []{currentSortColumn}))
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.ProcessName</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <button class="btn btn-primary" @onclick="Reload">Reload</button>
+
+}
+
+@code {
+
+    RunningProcessCollection list;
+    bool ascending;
+    string currentSortColumn;
+    public object SortInfo { get; set; }
+
+    private void Reload()
+    {
+        list = collector.GetAll();
+    }
+
+    protected override void OnInitialized()
+    {
+        list = collector.GetAll();
+
+        base.OnInitialized();
+    }
+
+    private void SortBy(string columnName)
+    {
+        currentSortColumn = columnName;
+        ascending = !ascending;
+    }
+    
+    
+
+}
