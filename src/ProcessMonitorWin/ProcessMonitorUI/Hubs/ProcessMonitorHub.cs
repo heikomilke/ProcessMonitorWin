@@ -10,6 +10,7 @@ public class ProcessMonitorHub : Hub
     private readonly ILogger<ProcessMonitorHub> _logger;
     private readonly IHostApplicationLifetime _lt;
     private readonly RunningProcessCollector _collector;
+    private bool _started;
 
     public ProcessMonitorHub(ILogger<ProcessMonitorHub> logger, IHostApplicationLifetime lt,
         RunningProcessCollector collector)
@@ -21,7 +22,12 @@ public class ProcessMonitorHub : Hub
 
     public void Start()
     {
+        if (_started)
+        {
+            return;
+        }
         Task.Factory.StartNew(StartTicking);
+        _started = true;
     }
 
     private async Task StartTicking()

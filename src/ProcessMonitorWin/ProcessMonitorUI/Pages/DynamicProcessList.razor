@@ -2,7 +2,11 @@
 @using ProcessMonitorService.Service
 @using ProcessMonitorService.Data
 @using ProcessMonitorUI.Helper
+@using ProcessMonitorUI.Hubs
+@using Microsoft.AspNetCore.SignalR.Client
 @inject RunningProcessCollector collector
+@inject ProcessMonitorHub MonitorHub
+@inject NavigationManager NavigationManager
 
 <PageTitle>Dynamic Process List</PageTitle>
 @if (_list == null)
@@ -42,17 +46,31 @@ else
 @code {
 
     RunningProcessCollection? _list;
+    private HubConnection? hubConnection;
 
     private void Reload()
     {
         _list = collector.GetAll();
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _list = collector.GetAll();
 
-        base.OnInitialized();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri(MonitorHub.DefaultRoute))
+            .Build();
+        
+        hubConnection.On<RunningProcessCollection>("UpdateAll", (incoming) =>
+        {
+            this._list = incoming;
+            this.InvokeAsync(this.StateHasChanged);
+
+        });
+
+        await hubConnection.StartAsync();
+        MonitorHub.Start();
+
+        await base.OnInitializedAsync();
     }
 
 
