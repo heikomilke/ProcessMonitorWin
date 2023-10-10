@@ -29,19 +29,22 @@ else
             <th>
                 Name
             </th>
+            <th>
+                Path
+            </th>
         </tr>
         </thead>
         <tbody>
-        @foreach (var p in _list.Data.OrderBy(d=>d.ProcessName))
+        @foreach (var p in _list.Data.OrderBy(d => d.ProcessName))
         {
             <tr>
                 <td>@p.Id</td>
                 <td>@p.ProcessName</td>
+                <td>@p.ProcessPath</td>
             </tr>
         }
         </tbody>
     </table>
-
 }
 
 @code {
@@ -56,25 +59,24 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri(MonitorHub.DefaultRoute))
             .Build();
-        
+
         hubConnection.On<RunningProcessCollection>("UpdateAll", (incoming) =>
         {
             this._list = incoming;
             this.InvokeAsync(this.StateHasChanged);
-
         });
 
         await hubConnection.StartAsync();
+
         MonitorHub.Start();
 
         await base.OnInitializedAsync();
     }
-    
-    
+
+
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)
@@ -83,7 +85,7 @@ else
         }
     }
 
-    
-    
+
+
 
 }

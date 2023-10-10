@@ -19,12 +19,26 @@ public class RunningProcessCollector
         List<RunningProcess> metaList = new();
         foreach (var p in processes)
         {
-            var meta = new RunningProcess(p.Id, p.ProcessName);
+            var meta = new RunningProcess(p.Id, p.ProcessName, GetProcessPath(p));
             metaList.Add(meta);
         }
 
         var all = new RunningProcessCollection(startTime, metaList.ToArray());
 
         return all;
+    }
+    
+    
+    // security might prevent us from getting path so lets try catch it here
+    private string GetProcessPath(Process process)
+    {
+        try
+        {
+            return process.MainModule.FileName;
+        }
+        catch (Exception)
+        {
+            return "(hidden)";
+        }
     }
 }
