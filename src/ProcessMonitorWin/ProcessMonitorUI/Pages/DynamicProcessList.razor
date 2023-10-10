@@ -1,0 +1,62 @@
+﻿@page "/dynamic-process-list"
+@using ProcessMonitorService.Service
+@using ProcessMonitorService.Data
+@using ProcessMonitorUI.Helper
+@inject RunningProcessCollector collector
+
+<PageTitle>Dynamic Process List</PageTitle>
+@if (_list == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <dl>
+        <dt>Date:</dt>
+        <dd>@_list.DateCreated</dd>
+    </dl>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>
+                Name
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in _list.Data.OrderBy(d=>d.ProcessName))
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.ProcessName</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+}
+
+@code {
+
+    RunningProcessCollection? _list;
+
+    private void Reload()
+    {
+        _list = collector.GetAll();
+    }
+
+    protected override void OnInitialized()
+    {
+        _list = collector.GetAll();
+
+        base.OnInitialized();
+    }
+
+
+    
+    
+
+}

@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using ProcessMonitorService.Service;
-using ProcessMonitorUI.Data;
+using ProcessMonitorUI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<RunningProcessCollector>();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -26,6 +26,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.MapHub<ProcessMonitorHub>(app.Services.GetService<ProcessMonitorHub>()!.DefaultRoute);
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

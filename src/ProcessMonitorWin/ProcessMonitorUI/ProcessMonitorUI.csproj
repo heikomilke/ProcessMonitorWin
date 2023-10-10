@@ -9,6 +9,11 @@
     <ItemGroup>
       <ProjectReference Include="..\ProcessMonitorService\ProcessMonitorService.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.11" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Data\" />
+    </ItemGroup>
 
 </Project>
