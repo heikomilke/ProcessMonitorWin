@@ -7,6 +7,7 @@
 @inject RunningProcessCollector collector
 @inject ProcessMonitorHub MonitorHub
 @inject NavigationManager NavigationManager
+@implements IAsyncDisposable
 
 <PageTitle>Dynamic Process List</PageTitle>
 @if (_list == null)
@@ -72,7 +73,15 @@ else
 
         await base.OnInitializedAsync();
     }
-
+    
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
 
     
     

@@ -39,4 +39,17 @@ public class ProcessMonitorHub : Hub
             await Clients.All.SendAsync("UpdateAll", all, _lt.ApplicationStopping);
         }
     }
+
+    public override Task OnConnectedAsync()
+    {
+        _logger.LogInformation("Client connected.");
+
+        return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        _logger.LogInformation("Client disconnected. exception: "+ exception);
+        return base.OnDisconnectedAsync(exception);
+    }
 }
