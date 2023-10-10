@@ -22,14 +22,18 @@ else
         <tr>
             <th>ID</th>
             <th >
-                     <button @onclick='() => SortBy("ProcessName")' class="btn btn-link">
+                <button @onclick='() => SortBy("ProcessName")' class="btn btn-link"
+                        @oncontextmenu="RemoveSort"
+                        @oncontextmenu:preventDefault="true"
+                
+                        >
                                         @if (currentSortColumn == "ProcessName")
                                         {
                                             <span>@(ascending ? "▲" : "▼")</span>
                                         }
                                         else
                                         {
-                                            <span>sort</span>
+                                            <span>⥊</span>
                                         }
                                     </button>
                 Name
@@ -75,6 +79,10 @@ else
         ascending = !ascending;
     }
     
-    
+    private void RemoveSort()
+    {
+        currentSortColumn = null;
+        //ascending = !ascending;
+    }
 
 }
