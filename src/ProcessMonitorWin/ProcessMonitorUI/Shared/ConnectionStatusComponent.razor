@@ -1,0 +1,106 @@
+﻿@using ProcessMonitorUI.Hubs
+@using Microsoft.AspNetCore.SignalR.Client
+@inject SelfTestHub SelfTestHub
+@inject NavigationManager NavigationManager
+@inject IHostApplicationLifetime LT
+@implements IAsyncDisposable
+
+<span>Connection Status</span>
+
+&nbsp;
+
+<b>Status</b>&nbsp;<i>@_connectionStatus</i>
+
+&nbsp;
+
+<b>Health</b>&nbsp;<i>@_healthCode</i>
+
+&nbsp;
+
+<b>Response Time</b>&nbsp;<i>@_responseTime</i>
+
+&nbsp;
+
+<b>Sequence</b>&nbsp;<i>@_sequence</i>
+
+@code {
+
+    private HubConnection? hubConnection;
+
+
+    private int _responseTime = 0;
+    private string _connectionStatus = "connecting";
+    private long _sequence = 0;
+    private string _healthCode = "unkown";
+    private Task? _localMonitorTask;
+    private DateTime? _dateLastMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri(SelfTestHub.DefaultRoute))
+            .Build();
+
+        hubConnection.On<PingMessage>("Ping", (incoming) =>
+        {
+            this._responseTime = Convert.ToInt32((DateTime.UtcNow - incoming.DateCreated).TotalMilliseconds);
+            this._connectionStatus = "connected";
+            this._sequence = incoming.Sequence;
+            this._dateLastMessage = DateTime.UtcNow;
+            this.InvokeAsync(this.StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
+        StartLocalMonitor();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void StartLocalMonitor()
+    {
+        _localMonitorTask = Task.Factory.StartNew(LocalMonitorLoop, TaskCreationOptions.LongRunning);
+    }
+
+    private async Task LocalMonitorLoop()
+    {
+        while (true)
+        {
+            RefreshHealth();
+            await Task.Delay(100, LT.ApplicationStopping);
+        }
+    }
+
+    private void RefreshHealth()
+    {
+        var prev = _healthCode;
+        if (!_dateLastMessage.HasValue)
+        {
+            _healthCode = "BAD (not connected)";
+        }
+        else
+        {
+            var dist = DateTime.UtcNow - _dateLastMessage.Value;
+            if (dist.TotalMilliseconds < 1500)
+                _healthCode = "GREEN";
+            else if (dist.TotalMilliseconds < 2000)
+                _healthCode = "YELLOW";
+            else if (dist.TotalMilliseconds < 3000)
+                _healthCode = "ORANGE";
+            else
+                _healthCode = "RED";
+        }
+
+        if (prev != _healthCode)
+            this.InvokeAsync(this.StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+}

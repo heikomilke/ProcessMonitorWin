@@ -11,6 +11,7 @@ public class ProcessMonitorHub : Hub
     private readonly IHostApplicationLifetime _lt;
     private readonly RunningProcessCollector _collector;
     private bool _started;
+    private Task<Task> _tickerTask;
 
     public ProcessMonitorHub(ILogger<ProcessMonitorHub> logger, IHostApplicationLifetime lt,
         RunningProcessCollector collector)
@@ -26,7 +27,7 @@ public class ProcessMonitorHub : Hub
         {
             return;
         }
-        Task.Factory.StartNew(StartTicking);
+        _tickerTask = Task.Factory.StartNew(StartTicking);
         _started = true;
     }
 
@@ -35,6 +36,8 @@ public class ProcessMonitorHub : Hub
         while (true)
         {
             await Task.Delay(1000, _lt.ApplicationStopping);
+            if (Clients==null)
+                continue;
             var all = _collector.GetAll();
             await Clients.All.SendAsync("UpdateAll", all, _lt.ApplicationStopping);
         }
